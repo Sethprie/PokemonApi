@@ -27,6 +27,4 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "TU_CONNECTION_STR
 dotnet run
 ```
 
-La documentación interactiva está disponible en `/scalar/v1`.
-
-Link: [text](https://pokemonapi-mavn.onrender.com/scalar/)
+La documentación interactiva está disponible en [/scalar/v1](https://pokemonapi-mavn.onrender.com/scalar/v1)
