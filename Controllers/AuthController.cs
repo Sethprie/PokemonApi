@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using PokemonApi.DTOs;
 
 namespace PokemonApi.Controllers;
 
@@ -52,7 +53,10 @@ public class AuthController : ControllerBase
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
 
-            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+            return Ok(new AuthResponseDto
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token)
+            });
         }
         return Unauthorized();
     }

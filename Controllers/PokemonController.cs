@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PokemonApi.Data;
 using PokemonApi.Models;
+using PokemonApi.DTOs;
 
 namespace PokemonApi.Controllers;
 
@@ -19,26 +20,58 @@ public class PokemonController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Pokemon>>> GetPokemons()
+    public async Task<ActionResult<IEnumerable<PokemonReadDto>>> GetPokemons()
     {
-        return await _context.Pokemons.ToListAsync();
+        var pokemons = await _context.Pokemons.ToListAsync();
+        
+        var pokemonDtos = pokemons.Select(p => new PokemonReadDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Type = p.Type,
+            Level = p.Level
+        });
+
+        return Ok(pokemonDtos);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Pokemon>> PostPokemon(Pokemon pokemon)
+    public async Task<ActionResult<PokemonReadDto>> PostPokemon([FromBody] PokemonCreateUpdateDto dto)
     {
-        _context.Pokemons.Add(pokemon);
+        var pokemonEntity = new Pokemon
+        {
+            Name = dto.Name,
+            Type = dto.Type,
+            Level = dto.Level
+        };
+
+        _context.Pokemons.Add(pokemonEntity);
         await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetPokemons), new { id = pokemon.Id }, pokemon);
+
+        var pokemonReadDto = new PokemonReadDto
+        {
+            Id = pokemonEntity.Id,
+            Name = pokemonEntity.Name,
+            Type = pokemonEntity.Type,
+            Level = pokemonEntity.Level
+        };
+
+        return CreatedAtAction(nameof(GetPokemons), new { id = pokemonReadDto.Id }, pokemonReadDto);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutPokemon(int id, Pokemon pokemon)
+    public async Task<IActionResult> PutPokemon(int id, [FromBody] PokemonCreateUpdateDto dto)
     {
-        if (id != pokemon.Id) return BadRequest();
+        var pokemonEntity = await _context.Pokemons.FindAsync(id);
+        if (pokemonEntity == null) return NotFound();
 
-        _context.Entry(pokemon).State = EntityState.Modified;
+        pokemonEntity.Name = dto.Name;
+        pokemonEntity.Type = dto.Type;
+        pokemonEntity.Level = dto.Level;
+
+        _context.Entry(pokemonEntity).State = EntityState.Modified;
         await _context.SaveChangesAsync();
+        
         return NoContent();
     }
 
