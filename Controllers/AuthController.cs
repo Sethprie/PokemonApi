@@ -22,20 +22,20 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(string email, string password)
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto) // Usa el DTO de entrada
     {
-        var user = new IdentityUser { UserName = email, Email = email };
-        var result = await _userManager.CreateAsync(user, password);
+        var user = new IdentityUser { UserName = dto.Email, Email = dto.Email };
+        var result = await _userManager.CreateAsync(user, dto.Password);
 
         if (result.Succeeded) return Ok("User successfully registered!");
         return BadRequest(result.Errors);
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(string email, string password)
+    public async Task<IActionResult> Login([FromBody] LoginDto dto) // Usa el DTO de entrada
     {
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user != null && await _userManager.CheckPasswordAsync(user, password))
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user != null && await _userManager.CheckPasswordAsync(user, dto.Password))
         {
             var authClaims = new List<Claim>
             {
