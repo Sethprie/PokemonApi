@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PokemonApi.Data;
-using PokemonApi.Models;
 using PokemonApi.DTOs;
+using PokemonApi.Services;
 
 namespace PokemonApi.Controllers;
 
@@ -12,77 +10,50 @@ namespace PokemonApi.Controllers;
 [ApiController]
 public class PokemonController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IPokemonService _pokemonService;
 
-    public PokemonController(ApplicationDbContext context)
+    public PokemonController(IPokemonService pokemonService)
     {
-        _context = context;
+        _pokemonService = pokemonService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PokemonReadDto>>> GetPokemons()
+    public async Task<ActionResult<IEnumerable<PokemonReadDto>>> GetPokemons(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var pokemons = await _context.Pokemons.ToListAsync();
-        
-        var pokemonDtos = pokemons.Select(p => new PokemonReadDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Type = p.Type,
-            Level = p.Level
-        });
+        var pokemons = await _pokemonService.GetAllAsync(page, pageSize);
+        return Ok(pokemons);
+    }
 
-        return Ok(pokemonDtos);
+    [HttpGet("{id}")]
+    public async Task<ActionResult<PokemonReadDto>> GetPokemon(int id)
+    {
+        var pokemon = await _pokemonService.GetByIdAsync(id);
+        if (pokemon == null) return NotFound();
+        return Ok(pokemon);
     }
 
     [HttpPost]
     public async Task<ActionResult<PokemonReadDto>> PostPokemon([FromBody] PokemonCreateUpdateDto dto)
     {
-        var pokemonEntity = new Pokemon
-        {
-            Name = dto.Name,
-            Type = dto.Type,
-            Level = dto.Level
-        };
-
-        _context.Pokemons.Add(pokemonEntity);
-        await _context.SaveChangesAsync();
-
-        var pokemonReadDto = new PokemonReadDto
-        {
-            Id = pokemonEntity.Id,
-            Name = pokemonEntity.Name,
-            Type = pokemonEntity.Type,
-            Level = pokemonEntity.Level
-        };
-
-        return CreatedAtAction(nameof(GetPokemons), new { id = pokemonReadDto.Id }, pokemonReadDto);
+        var created = await _pokemonService.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetPokemon), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> PutPokemon(int id, [FromBody] PokemonCreateUpdateDto dto)
     {
-        var pokemonEntity = await _context.Pokemons.FindAsync(id);
-        if (pokemonEntity == null) return NotFound();
-
-        pokemonEntity.Name = dto.Name;
-        pokemonEntity.Type = dto.Type;
-        pokemonEntity.Level = dto.Level;
-
-        _context.Entry(pokemonEntity).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        
+        var updated = await _pokemonService.UpdateAsync(id, dto);
+        if (!updated) return NotFound();
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePokemon(int id)
     {
-        var pokemon = await _context.Pokemons.FindAsync(id);
-        if (pokemon == null) return NotFound();
-
-        _context.Pokemons.Remove(pokemon);
-        await _context.SaveChangesAsync();
+        var deleted = await _pokemonService.DeleteAsync(id);
+        if (!deleted) return NotFound();
         return NoContent();
     }
 }

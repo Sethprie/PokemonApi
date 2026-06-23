@@ -22,7 +22,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDto dto) // Usa el DTO de entrada
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         var user = new IdentityUser { UserName = dto.Email, Email = dto.Email };
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto dto) // Usa el DTO de entrada
+    public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user != null && await _userManager.CheckPasswordAsync(user, dto.Password))
