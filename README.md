@@ -6,19 +6,45 @@ API REST desarrollada con ASP.NET Core (.NET 10), Entity Framework Core y Postgr
 
 - ASP.NET Core 10
 - Entity Framework Core
-- PostgreSQL (Neon)
+- PostgreSQL
 - JWT Authentication (ASP.NET Identity)
 - Scalar (documentación OpenAPI)
-- Docker
+- xUnit (tests unitarios)
+- Docker + Docker Compose
 
-## Endpoints principales
+## Pruébala en vivo
 
-- `POST /api/auth/register` - Registro de usuario
-- `POST /api/auth/login` - Login (devuelve JWT)
-- `GET /api/pokemon` - Listar pokémon (requiere auth)
-- `POST /api/pokemon` - Crear pokémon (requiere auth)
-- `PUT /api/pokemon/{id}` - Actualizar pokémon (requiere auth)
-- `DELETE /api/pokemon/{id}` - Eliminar pokémon (requiere auth)
+La API está desplegada en Render. Puedes explorar y probar todos los endpoints desde la documentación interactiva:
+
+**[https://pokemonapi-mavn.onrender.com/scalar/](https://pokemonapi-mavn.onrender.com/scalar/)**
+
+## Endpoints
+
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| POST | `/api/auth/register` | No | Registro de usuario |
+| POST | `/api/auth/login` | No | Login, devuelve JWT |
+| GET | `/api/pokemon?page=1&pageSize=10` | Sí | Listar pokémon paginado |
+| GET | `/api/pokemon/{id}` | Sí | Obtener pokémon por id |
+| POST | `/api/pokemon` | Sí | Crear pokémon |
+| PUT | `/api/pokemon/{id}` | Sí | Actualizar pokémon |
+| DELETE | `/api/pokemon/{id}` | Sí | Eliminar pokémon |
+
+## Arquitectura
+
+El proyecto separa responsabilidades en capas:
+
+- **Controllers** — reciben la request y devuelven la response, sin lógica de negocio
+- **Services** — contienen la lógica de negocio e interactúan con la base de datos
+- **DTOs** — definen qué datos entran y salen de la API, sin exponer las entidades directamente
+
+## Ejecutar con Docker
+
+```bash
+docker-compose up --build
+```
+
+La API queda disponible en `http://localhost:8080` y la documentación interactiva en `http://localhost:8080/scalar/v1`.
 
 ## Ejecutar localmente
 
@@ -27,4 +53,11 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "TU_CONNECTION_STR
 dotnet run
 ```
 
-La documentación interactiva está disponible en [/scalar/v1](https://pokemonapi-mavn.onrender.com/scalar/v1)
+La documentación interactiva queda disponible en `http://localhost:5000/scalar/v1`.
+
+## Tests
+
+```bash
+cd PokemonApi.Tests
+dotnet test
+```
