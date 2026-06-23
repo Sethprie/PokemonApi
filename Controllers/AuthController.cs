@@ -27,8 +27,13 @@ public class AuthController : ControllerBase
         var user = new IdentityUser { UserName = dto.Email, Email = dto.Email };
         var result = await _userManager.CreateAsync(user, dto.Password);
 
-        if (result.Succeeded) return Ok("User successfully registered!");
-        return BadRequest(result.Errors);
+        if (result.Succeeded) return Ok(new { message = "User successfully registered!" });
+        
+        return BadRequest(new
+        {
+            title = "Registration failed",
+            errors = result.Errors.Select(e => e.Description)
+        });
     }
 
     [HttpPost("login")]
